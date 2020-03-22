@@ -1,4 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: api-lambda-ses-recaptcha
+    Description: hello world
+    Author: user1
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['tests']
+    HomePageUrl: https://github.com/nameofperson/api-lambda-ses-recaptcha
+    SemanticVersion: 0.0.1
+    SourceCodeUrl: https://github.com/nameofperson/api-lambda-ses-recaptcha
+
 Transform: AWS::Serverless-2016-10-31
 Parameters:
   FromEmail:
@@ -8,6 +21,11 @@ Parameters:
     MinLength: 4
     MaxLength: 70
     ConstraintDescription: 'Required. Must be a SES verified email address.'
+  RecaptchaSecret:
+    Type: String
+    Default: ''
+    Description: (Required) Represents the ReCaptcha secret which will be used to validate the token sent from the request
+    MaxLength: 250
   CorsOrigin:
     Type: String
     Default: ''
@@ -24,6 +42,7 @@ Resources:
       Environment:
         Variables:
           FROM_EMAIL: !Ref FromEmail
+          RECAPTCHA_SECRET: !Ref RecaptchaSecret
           CORS_ORIGIN: !Ref CorsOrigin
       Policies:
         - SESCrudPolicy:
