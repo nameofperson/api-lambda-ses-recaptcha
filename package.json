@@ -1,15 +1,17 @@
 {
-  "name": "api-lambda-send-email-ses",
+  "name": "api-lambda-ses-recaptcha",
   "version": "1.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "package": "aws cloudformation package --template-file template.yml --output-template-file output.yml --s3-bucket app-repo-components",
-    "deploy": "aws cloudformation deploy --template-file output.yml --stack-name api-lambda-send-email-ses --capabilities CAPABILITY_IAM",
+    "package": "aws cloudformation package --template-file template.yml --output-template-file dist/output.yml --s3-bucket api-lambda-ses-recaptcha-template --profile PersonalAWS",
+    "deploy": "aws cloudformation deploy --template-file dist/output.yml --stack-name api-lambda-ses-recaptcha --capabilities CAPABILITY_IAM --profile PersonalAWS",
     "qd": "npm run package && npm run deploy",
-    "deploy:test": "aws cloudformation deploy --template-file output.yml --stack-name api-lambda-send-email-ses --capabilities CAPABILITY_IAM --parameter-overrides FromEmail=alexander.simovic@gmail.com"
+    "deploy:test": "aws cloudformation deploy --template-file dist/output.yml --stack-name api-lambda-ses-recaptcha --capabilities CAPABILITY_IAM --parameter-overrides FromEmail=perez.pratt@gmail.com",
+    "package-sam": "sam package --template-file template.yml --output-template-file dist/packaged-sam.yml --s3-bucket api-lambda-ses-recaptcha-template --profile PersonalAWS",
+    "publish-sam": "sam publish --template dist/packaged-sam.yml --region us-east-1 --profile PersonalAWS"
   },
   "keywords": [],
-  "author": "Aleksandar Simovic <alexander.simovic@gmail.com>",
+  "author": "Jorge Luis Pérez Pratt <perez.pratt@gmail.com>",
   "license": "MIT"
 }

@@ -1,4 +1,17 @@
 AWSTemplateFormatVersion: 2010-09-09
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: api-lambda-ses-recaptcha
+    Description: A Serverless mailer stack with ReCaptcha, using Lambda + SES + API Gateway
+    Author: Jorge Luis Perez Pratt
+    SpdxLicenseId: Apache-2.0
+    LicenseUrl: LICENSE.txt
+    ReadmeUrl: README.md
+    Labels: ['tests']
+    HomePageUrl: https://github.com/nameofperson/api-lambda-ses-recaptcha
+    SemanticVersion: 0.1.0
+    SourceCodeUrl: https://github.com/nameofperson/api-lambda-ses-recaptcha
+
 Transform: AWS::Serverless-2016-10-31
 Parameters:
   FromEmail:
@@ -8,6 +21,17 @@ Parameters:
     MinLength: 4
     MaxLength: 70
     ConstraintDescription: 'Required. Must be a SES verified email address.'
+  UseSelfEmail:
+    Type: String
+    Default: 'Yes'
+    Description: (Required) Overrides the 'toEmail' parameter from the API call so sender and destination emails are the same.
+    MaxLength: 3
+    ConstraintDescription: 'Required. Must be Yes or No'
+  RecaptchaSecret:
+    Type: String
+    Default: ''
+    Description: (Required) Represents the ReCaptcha secret which will be used to validate the token sent from the request
+    MaxLength: 250
   CorsOrigin:
     Type: String
     Default: ''
@@ -24,7 +48,9 @@ Resources:
       Environment:
         Variables:
           FROM_EMAIL: !Ref FromEmail
+          RECAPTCHA_SECRET: !Ref RecaptchaSecret
           CORS_ORIGIN: !Ref CorsOrigin
+          USE_SELF_EMAIL: !Ref UseSelfEmail
       Policies:
         - SESCrudPolicy:
             IdentityName: !Ref FromEmail
@@ -32,14 +58,14 @@ Resources:
         EmailApi:
           Type: Api
           Properties:
-            Path: /send
+            Path: /mailerSend
             Method: POST
         EmailOptionsApi:
           Type: Api
           Properties:
-            Path: /send
+            Path: /mailerSend
             Method: OPTIONS
 Outputs:
   ApiUrl:
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/send
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/mailerSend
     Description: The URL of the API Gateway you should invoke to send an email
