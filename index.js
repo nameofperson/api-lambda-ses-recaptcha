@@ -1,7 +1,9 @@
 const AWS = require('aws-sdk'),
   SES = new AWS.SES(),
   processResponse = require('./process-response.js'),
+  recaptchaCheck = require('./recaptcha-check.js'),
   FROM_EMAIL = process.env.FROM_EMAIL,
+  USE_SELF_EMAIL = process.env.USE_SELF_EMAIL,
   UTF8CHARSET = 'UTF-8';
 
 exports.handler = async event => {
@@ -14,12 +16,16 @@ exports.handler = async event => {
   }
   const emailData = JSON.parse(event.body);
 
-  if (!emailData.toEmails || !Array.isArray(emailData.toEmails) || !emailData.subject || !emailData.message) {
-    return processResponse(true, 'Please specify email parameters: toEmails, subject and message', 400);
+  if (!emailData.subject || !emailData.message) {
+    return processResponse(true, 'Please specify email parameters: subject and message', 400);
   }
 
+  if ((!emailData.toEmails || !Array.isArray(emailData.toEmails)) && USE_SELF_EMAIL == 'No') {
+    return processResponse(true, 'Please specify email parameters: toEmails', 400);
+  }
+  
   const destination = {
-    ToAddresses: emailData.toEmails
+    ToAddresses: (USE_SELF_EMAIL === 'No') ? emailData.toEmails : FROM_EMAIL
   }
 
   if (emailData.ccEmails) {
@@ -46,9 +52,18 @@ exports.handler = async event => {
     emailParams.ReplyToAddresses = emailData.replyToEmails;
   }
 
+  const token = emailData.token;
+
   try {
-    await SES.sendEmail(emailParams).promise();
-    return processResponse(true);
+    const isRecaptchaValid = await recaptchaCheck(token);
+    if (isRecaptchaValid === 'Valid') {
+      await SES.sendEmail(emailParams).promise();
+      return processResponse(true);
+    }
+    else {
+      const errorResponse = `Invalid ReCaptcha Challenge submitted, please retry.`;
+      return processResponse(true, errorResponse, 403);
+    }
   } catch (err) {
     console.error(err, err.stack);
     const errorResponse = `Error: Execution update, caused a SES error, please look at your logs.`;
