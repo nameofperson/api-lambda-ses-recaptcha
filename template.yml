@@ -58,14 +58,14 @@ Resources:
         EmailApi:
           Type: Api
           Properties:
-            Path: /send
+            Path: /mailerSend
             Method: POST
         EmailOptionsApi:
           Type: Api
           Properties:
-            Path: /send
+            Path: /mailerSend
             Method: OPTIONS
 Outputs:
   ApiUrl:
-    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/send
+    Value: !Sub https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/mailerSend
     Description: The URL of the API Gateway you should invoke to send an email
