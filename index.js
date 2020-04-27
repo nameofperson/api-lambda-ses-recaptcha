@@ -1,6 +1,7 @@
 const AWS = require('aws-sdk'),
   SES = new AWS.SES(),
   processResponse = require('./process-response.js'),
+  recaptchaCheck = require('./recaptcha-check.js'),
   FROM_EMAIL = process.env.FROM_EMAIL,
   UTF8CHARSET = 'UTF-8';
 
@@ -46,9 +47,18 @@ exports.handler = async event => {
     emailParams.ReplyToAddresses = emailData.replyToEmails;
   }
 
+  const token = emailData.token;
+
   try {
+    const isRecaptchaValid = await recaptchaCheck(token);
+    if (isRecaptchaValid === 'Valid') {
     await SES.sendEmail(emailParams).promise();
     return processResponse(true);
+    }
+    else {
+      const errorResponse = `Invalid ReCaptcha Challenge submitted, please retry.`;
+      return processResponse(true, errorResponse, 403);
+    }
   } catch (err) {
     console.error(err, err.stack);
     const errorResponse = `Error: Execution update, caused a SES error, please look at your logs.`;

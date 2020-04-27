@@ -25,7 +25,7 @@ module.exports = async (token) => {
                 var data = JSON.parse(chunk);
                 if (data.success == true) {
                     console.log('ReCAPTCHA valid, sending email');
-                    resolve('Success');
+                    resolve('Valid');
                 }
                 else {
                     console.log('ReCAPTCHA invalid!');
