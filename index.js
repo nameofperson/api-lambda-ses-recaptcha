@@ -25,7 +25,7 @@ exports.handler = async event => {
   }
   
   const destination = {
-    ToAddresses: (USE_SELF_EMAIL === 'No') ? emailData.toEmails : FROM_EMAIL
+    ToAddresses: (USE_SELF_EMAIL === 'No') ? emailData.toEmails : new Array(FROM_EMAIL)
   }
 
   if (emailData.ccEmails) {
